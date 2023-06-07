@@ -7,6 +7,9 @@ Homework Prompt:
     
     
 # Usage
-To use this application, open two terminal windows, navigate to the repository root in each. In the first terminal run server.py, (python server.py) and in the second terminal run client.py (python client.py).  You can run this application in any python environment, as it only imports from the standard library.
+To use this application, open two terminal windows, navigate to the repository root in each. In the first terminal run server.py, (`python server.py`) and in the second terminal run client.py (`python client.py`).  You can run this application in any python environment, as it only imports from the standard library.
 
 To exit the application, type `exit` in the client terminal.  If it hangs, as always `CRTL+C` works.
+
+
+
