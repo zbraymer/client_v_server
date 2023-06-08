@@ -1,46 +1,67 @@
 import socket
-import threading
 import time
-
-
-def handle_client(client_socket, client_address):
-    print(f"Connection established with {client_address[0]}:{client_address[1]}")
-
-    while True:
-        data = client_socket.recv(1024).decode()
-
-        if not data:
-            break
-
-        if data == 'exit':
-            break
-
-        print(f"Received message from client: {data.upper()}")
-        client_socket.send(data.upper().encode())
-
-    print(f"Connection with {client_address[0]}:{client_address[1]} closed")
-    client_socket.close()
+from datetime import datetime
+import threading
 
 
 def send_time_to_client(client_socket):
     while True:
-        current_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        # Get the current time
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        # Send the current time to the client
         client_socket.send(current_time.encode())
+
+        # Sleep for 1 minute
         time.sleep(60)
 
 
-def run_server():
+def start_server():
+    # Create a TCP/IP socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_socket.bind(('localhost', 12345))
-    server_socket.listen(1)
 
-    print("Server started. Listening for connections...")
+    # Bind the socket to a specific address and port
+    server_address = ('localhost', 12345)
+    server_socket.bind(server_address)
+
+    # Listen for incoming connections
+    server_socket.listen(1)
+    print('Server is listening on {}:{}'.format(*server_address))
 
     while True:
+        # Wait for a connection
+        print('Waiting for a connection...')
         client_socket, client_address = server_socket.accept()
-        threading.Thread(target=handle_client, args=(client_socket, client_address)).start()
-        threading.Thread(target=send_time_to_client, args=(client_socket,)).start()
+        print(f'Accepted connection from {server_address[0]}:{server_address[1]}')
+
+        # Create a separate thread to send time to the client
+        time_thread = threading.Thread(target=send_time_to_client, args=(client_socket,))
+        time_thread.start()
+
+        while True:
+            # Receive data from the client
+            data = client_socket.recv(1024).decode()
+
+            # If the client has closed the connection, break the loop.
+            if not data:
+                break
+
+            # If the client sends exit, break the loop.
+            if data.lower() == 'exit':
+                print('Client requested to exit. Closing the connection.')
+                # Clean up the connection
+                break
+
+            # Convert the received data to uppercase
+            uppercase_data = data.upper()
+
+            # Send the echoed data back to the client
+            client_socket.send(uppercase_data.encode())
+            print(f'Received data from client: {uppercase_data}')
+
+        # Clean up the connection
+        client_socket.close()
 
 
 if __name__ == '__main__':
-    run_server()
+    start_server()
